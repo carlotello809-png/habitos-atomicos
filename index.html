@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Hábitos Atómicos</title>
+  <meta name="description" content="Construye hábitos pequeños que se acumulan. Seguimiento diario, metas, notas, estadísticas y reportes imprimibles de tu constancia.">
+  <meta name="theme-color" content="#f2f2f7">
+  <meta name="color-scheme" content="dark light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hábitos">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Hábitos Atómicos">
+  <meta property="og:description" content="Pequeños cambios, resultados extraordinarios. Tu tracker de hábitos, metas y reflexiones.">
+  <meta property="og:image" content="assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/report.css">
+  <link rel="stylesheet" href="css/motion.css">
+
+  <script>
+    /* Aplica el tema antes del primer pintado para evitar parpadeos */
+    (function () {
+      var theme = 'light';
+      try {
+        var idx = JSON.parse(localStorage.getItem('habitos-atomicos:perfiles') || 'null');
+        var raw = idx && idx.last ? localStorage.getItem('habitos-atomicos:perfil:' + idx.last) : null;
+        var pref = raw ? (JSON.parse(raw).settings || {}).theme : 'light';
+        if (!pref || pref === 'system') {
+          pref = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        theme = pref;
+      } catch (e) {}
+      document.documentElement.dataset.theme = theme;
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'dark' ? '#000000' : '#f2f2f7');
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#view">Saltar al contenido</a>
+
+  <!-- Capas de ambiente -->
+  <div class="ambient" aria-hidden="true">
+    <span class="orb orb-a"></span>
+    <span class="orb orb-b"></span>
+    <span class="orb orb-c"></span>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- Barra superior -->
+  <header class="chrome" id="chrome">
+    <a class="brand" href="#hoy" aria-label="Hábitos Atómicos, ir a Hoy">
+      <svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#atom-mark" width="100" height="100"/></svg>
+      <span class="brand-word"><span class="brand-serif">Hábitos</span> atómicos</span>
+    </a>
+
+    <div class="chrome-title" id="chromeTitle" aria-hidden="true"></div>
+
+    <nav class="nav-island" id="nav" aria-label="Secciones">
+      <span class="nav-indicator" aria-hidden="true"></span>
+      <a class="nav-item" href="#hoy" data-view="hoy"><i class="ph ph-sun-horizon" aria-hidden="true"></i><span>Hoy</span></a>
+      <a class="nav-item" href="#mes" data-view="mes"><i class="ph ph-calendar-dots" aria-hidden="true"></i><span>Mes</span></a>
+      <a class="nav-item" href="#metas" data-view="metas"><i class="ph ph-target" aria-hidden="true"></i><span>Metas</span></a>
+      <a class="nav-item" href="#notas" data-view="notas"><i class="ph ph-notebook" aria-hidden="true"></i><span>Notas</span></a>
+      <a class="nav-item" href="#progreso" data-view="progreso"><i class="ph ph-chart-line-up" aria-hidden="true"></i><span>Progreso</span></a>
+      <a class="nav-item" href="#reporte" data-view="reporte"><i class="ph ph-printer" aria-hidden="true"></i><span>Reporte</span></a>
+    </nav>
+
+    <div class="action-island">
+      <button class="icon-btn" id="btnSound" type="button" aria-label="Sonido" data-tip="Sonido · S">
+        <i class="ph ph-speaker-high" aria-hidden="true"></i>
+      </button>
+      <button class="icon-btn" id="btnTheme" type="button" aria-label="Cambiar tema" data-tip="Tema claro u oscuro">
+        <i class="ph ph-circle-half" aria-hidden="true"></i>
+      </button>
+      <button class="icon-btn" id="btnProfile" type="button" aria-label="Cambiar de persona" data-tip="Cambiar de persona">
+        <span class="avatar-mini" id="avatarMini"></span>
+      </button>
+      <button class="icon-btn" id="btnSettings" type="button" aria-label="Ajustes" data-tip="Ajustes">
+        <i class="ph ph-gear-six" aria-hidden="true"></i>
+      </button>
+    </div>
+  </header>
+
+  <main id="view" class="view-root" tabindex="-1"></main>
+
+  <!-- Capas de interfaz -->
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+  <div class="tooltip" id="tooltip" role="tooltip"></div>
+  <div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+  <canvas class="fx-canvas" id="fxCanvas" aria-hidden="true"></canvas>
+
+  <dialog class="modal" id="modal" aria-labelledby="modalTitle"></dialog>
+  <dialog class="sheet" id="sheet" aria-labelledby="sheetTitle"></dialog>
+  <dialog class="modal modal-sm" id="confirm" aria-labelledby="confirmTitle"></dialog>
+
+  <!-- Inicio: animación + ¿Quién está aquí? -->
+  <div class="intro" id="intro" hidden>
+    <div class="intro-stage">
+      <div class="intro-media" id="introMedia">
+        <video class="intro-video" muted loop playsinline autoplay preload="auto" disablepictureinpicture aria-hidden="true"></video>
+        <svg class="intro-atom" viewBox="-120 -120 240 240" aria-hidden="true">
+          <circle class="intro-glow" r="46"/>
+          <g class="intro-orbits">
+            <ellipse class="io io-1" rx="104" ry="36"/>
+            <ellipse class="io io-2" rx="104" ry="36" transform="rotate(60)"/>
+            <ellipse class="io io-3" rx="104" ry="36" transform="rotate(-60)"/>
+            <g transform="rotate(60)"><circle class="intro-electron" r="4.5"><animateMotion dur="3.2s" repeatCount="indefinite" path="M -104 0 A 104 36 0 1 1 104 0 A 104 36 0 1 1 -104 0"/></circle></g>
+            <g transform="rotate(-60)"><circle class="intro-electron" r="4.5"><animateMotion dur="4.1s" begin="-1.4s" repeatCount="indefinite" path="M -104 0 A 104 36 0 1 1 104 0 A 104 36 0 1 1 -104 0"/></circle></g>
+            <g><circle class="intro-electron" r="4.5"><animateMotion dur="3.6s" begin="-2.2s" repeatCount="indefinite" path="M -104 0 A 104 36 0 1 1 104 0 A 104 36 0 1 1 -104 0"/></circle></g>
+          </g>
+          <circle class="intro-nucleus" r="11"/>
+        </svg>
+      </div>
+      <h1 class="intro-word"><span class="intro-serif">Hábitos</span> <span class="intro-sans">atómicos</span></h1>
+      <p class="intro-tag">Pequeños cambios. Resultados extraordinarios.</p>
+
+      <section class="who" id="who" hidden aria-labelledby="whoTitle">
+        <h2 class="who-title" id="whoTitle">¿Quién está aquí?</h2>
+        <p class="who-sub">Cada persona tiene sus propios hábitos, metas y notas en este dispositivo.</p>
+        <div class="who-grid" id="whoGrid"></div>
+        <div class="who-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="whoManage"><i class="ph ph-pencil-simple" aria-hidden="true"></i> <span>Administrar</span></button>
+        </div>
+      </section>
+
+      <form class="intro-form" id="introForm" hidden novalidate>
+        <label class="field-label" for="introName">¿Cómo te llamas?</label>
+        <div class="intro-field">
+          <input id="introName" name="name" type="text" maxlength="30" autocomplete="given-name" placeholder="Tu nombre" aria-describedby="introErr">
+        </div>
+        <div class="swatches" id="introColors" role="radiogroup" aria-label="Color de tu perfil"></div>
+        <p class="field-error" id="introErr" hidden><i class="ph-fill ph-warning-circle" aria-hidden="true"></i> Escribe tu nombre para continuar.</p>
+        <div class="intro-form-actions">
+          <button type="button" class="btn btn-ghost" id="introCancel">Cancelar</button>
+          <button class="btn btn-primary" type="submit">
+            <span>Comenzar</span>
+            <span class="btn-orb"><i class="ph-bold ph-arrow-right" aria-hidden="true"></i></span>
+          </button>
+        </div>
+      </form>
+
+      <p class="intro-hello" id="introHello"></p>
+    </div>
+  </div>
+
+  <div class="print-root" id="printRoot" aria-hidden="true"></div>
+
+  <!-- Símbolos SVG compartidos -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="atom-mark" viewBox="-50 -50 100 100">
+        <g fill="none" stroke="currentColor" stroke-width="4.2">
+          <ellipse rx="42" ry="15"/>
+          <ellipse rx="42" ry="15" transform="rotate(60)"/>
+          <ellipse rx="42" ry="15" transform="rotate(-60)"/>
+        </g>
+        <circle r="8.5" style="fill:var(--accent)"/>
+      </symbol>
+      <symbol id="tick" viewBox="0 0 24 24">
+        <path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <script src="js/core.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/atom.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/views/today.js"></script>
+  <script src="js/views/month.js"></script>
+  <script src="js/views/goals.js"></script>
+  <script src="js/views/notes.js"></script>
+  <script src="js/views/progress.js"></script>
+  <script src="js/views/report.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

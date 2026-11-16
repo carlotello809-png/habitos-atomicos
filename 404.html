@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Página no encontrada · Hábitos Atómicos</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Instrument+Serif:ital@0;1&display=swap">
+  <style>
+    :root { color-scheme: dark; --bg: #0c0c0b; --ink: #f2f1ec; --ink-3: #86857f; --accent: #c8f065; }
+    @media (prefers-color-scheme: light) { :root { color-scheme: light; --bg: #f4f3ee; --ink: #181814; --ink-3: #807f78; --accent: #5f8a0c; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 24px; text-align: center;
+      background: radial-gradient(ellipse 60% 45% at 50% 40%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%), var(--bg);
+      color: var(--ink); font-family: Geist, system-ui, sans-serif; }
+    svg { width: 140px; margin: 0 auto 18px; display: block; animation: spin 40s linear infinite; }
+    h1 { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: clamp(40px, 8vw, 64px); line-height: 1; margin: 0; }
+    h1 em { color: var(--accent); }
+    p { color: var(--ink-3); margin: 14px 0 26px; }
+    a { display: inline-flex; align-items: center; height: 44px; padding: 0 22px; border-radius: 999px; background: #c8f065; color: #12170a; font-weight: 600; text-decoration: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { svg { animation: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <svg viewBox="-50 -50 100 100" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="2.2" opacity=".7">
+        <ellipse rx="44" ry="16"/><ellipse rx="44" ry="16" transform="rotate(60)"/><ellipse rx="44" ry="16" transform="rotate(-60)"/>
+      </g>
+      <circle r="7" fill="#c8f065"/>
+    </svg>
+    <h1>Esta página se <em>desintegró</em></h1>
+    <p>No encontramos lo que buscabas. Tus hábitos siguen intactos.</p>
+    <a href="./">Volver a Hábitos Atómicos</a>
+  </main>
+</body>
+</html>
