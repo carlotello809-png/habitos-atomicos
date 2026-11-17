@@ -1,7 +1,7 @@
 /* Hábitos Atómicos — service worker: funciona sin conexión.
    Red primero para los archivos propios (así siempre ves la versión más nueva),
    caché primero para fuentes e íconos de CDN. */
-const CACHE = 'habitos-atomicos-v2.3.0';
+const CACHE = 'habitos-atomicos-v2.3.1';
 const SHELL = [
   './',
   './index.html',
@@ -61,13 +61,18 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin === self.location.origin) {
     event.respondWith(
-      fetch(req)
+      // 'no-cache' revalida con el servidor: siempre llega la versión publicada más nueva
+      fetch(req, { cache: 'no-cache' })
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+          }
           return res;
         })
-        .catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html')))
+        .catch(() =>
+          caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match('./index.html'))
+        )
     );
     return;
   }
