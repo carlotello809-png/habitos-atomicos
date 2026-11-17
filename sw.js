@@ -1,7 +1,7 @@
 /* Hábitos Atómicos — service worker: funciona sin conexión.
    Red primero para los archivos propios (así siempre ves la versión más nueva),
    caché primero para fuentes e íconos de CDN. */
-const CACHE = 'habitos-atomicos-v2.2.0';
+const CACHE = 'habitos-atomicos-v2.3.0';
 const SHELL = [
   './',
   './index.html',

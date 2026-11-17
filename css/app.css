@@ -172,6 +172,7 @@ i[class*="ph"] { line-height: 1; display: inline-block; }
 ::selection { background: color-mix(in oklab, var(--tint) 30%, transparent); }
 :focus { outline: none; }
 :focus-visible { outline: 2.5px solid var(--focus); outline-offset: 3px; border-radius: 10px; }
+[hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .muted { color: var(--ink-3); }
 .small { font-size: 13px; }
