@@ -412,3 +412,42 @@ video.intro-video::-webkit-media-controls-overlay-play-button {
 @keyframes rise-m { from { opacity: 0; transform: translate3d(0, 14px, 0); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
 @keyframes word-in-m { from { opacity: 0; transform: translate3d(0, 0.45em, 0); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
 @keyframes cell-in-m { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+
+/* ---------- Rachas y citas: ahora se pueden tocar ---------- */
+.streak-list li + li { border-top: 0.5px solid var(--sep); }
+.streak-row {
+  position: relative; overflow: hidden; width: calc(100% + 12px); margin: 0 -6px; padding: 8px 6px;
+  text-align: left; border-radius: 12px;
+  transition: background-color 0.15s, transform 0.18s var(--ease-out), opacity 0.18s, filter 0.18s;
+}
+.streak-row:active { transform: scale(0.97); opacity: 0.75; filter: blur(0.6px); transition-duration: 0.06s; }
+.quote-card { cursor: pointer; -webkit-user-select: none; user-select: none; }
+.quote-card:active { transform: scale(0.98); transition: transform 0.08s; }
+@media (hover: hover) and (pointer: fine) { .streak-row:hover { background: var(--press); } }
+
+/* ---------- Crear hábito sin tirones en el teléfono ----------
+   Nada de difuminado sobre la hoja completa ni 46 íconos animándose a la vez:
+   la cuadrícula entra como un solo bloque y la hoja se desplaza de una sola pieza. */
+@media (hover: none), (max-width: 1023px) {
+  dialog.is-open::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .modal, .modal.is-open, .modal.is-closing { filter: none !important; }
+  dialog.is-open .dlg-body > *, dialog.is-open .sheet-body > *, dialog.is-open .dlg-head > *, dialog.is-open .sheet-head > * {
+    animation-name: rise-lite; animation-duration: 0.45s;
+  }
+  dialog.is-open .icon-grid .icon-opt { animation: none !important; }
+  .icon-grid { max-height: none; overflow: visible; }
+  .icon-opt { transition: background-color 0.15s, color 0.15s; }
+  .dlg-body, .sheet-body { -webkit-overflow-scrolling: touch; }
+}
+@keyframes rise-lite { from { opacity: 0; transform: translate3d(0, 12px, 0); } to { opacity: 1; transform: none; } }
+
+/* Con un panel abierto, el fondo deja de animarse (más fluidez y batería) */
+body:has(dialog[open]) .view-root *, body:has(dialog[open]) .orb { animation-play-state: paused !important; }
+
+/* Título compacto: a la izquierda, junto al logo, como en iOS */
+@media (max-width: 1023px) {
+  .chrome-title { left: 56px; transform: translateY(12px); }
+  .chrome.has-title .chrome-title { transform: none; }
+  .brand-word { transition: opacity 0.25s var(--ease-out); }
+  .chrome.has-title .brand-word { opacity: 0; }
+}

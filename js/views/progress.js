@@ -333,7 +333,8 @@
     const sum = St.range(dates);
     const prev = U.shiftMonth({ y, m }, -1);
     const prevSum = St.range(U.monthDates(prev.y, prev.m));
-    const q = HA.QUOTES[(U.dayOfYear(U.today()) + 7) % HA.QUOTES.length];
+    const qi = (U.dayOfYear(U.today()) + 7) % HA.QUOTES.length;
+    const q = HA.QUOTES[qi];
 
     root.innerHTML = `
       <section class="page page-progress">
@@ -366,7 +367,7 @@
               <ul class="advice">${advice(sum)}</ul>
             </div>
           </article>
-          <article class="quote-card quote-wide reveal">
+          <article class="quote-card quote-wide reveal" data-qi="${qi}" role="button" tabindex="0" aria-label="Consejo del día. Toca para ver otro.">
             <span class="quote-mark" aria-hidden="true">“</span>
             <p class="quote-text">${U.esc(q)}</p>
             <p class="quote-label">${ui.icon('sparkle', 'fill')} Consejo del día</p>

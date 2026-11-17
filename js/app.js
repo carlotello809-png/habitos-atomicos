@@ -125,7 +125,8 @@
         [{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'translateY(-6px) scale(0.99)', filter: 'blur(8px)' }],
         { duration: 170, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' }
       );
-      try { await a.finished; } catch (e) { /* interrumpida */ }
+      // nunca esperar de más: si la animación no avanza (pestaña en segundo plano), se sigue igual
+      try { await Promise.race([a.finished, new Promise((r) => setTimeout(r, 240))]); } catch (e) { /* interrumpida */ }
       if (token !== navToken) return;
       a.cancel();
     }
@@ -575,6 +576,7 @@
     ui.initTooltips();
     ui.initSpotlight();
     ui.initPress();
+    ui.initPressFx();
     ['#modal', '#sheet', '#confirm'].forEach((sel) => ui.dialog.wire($(sel)));
     bindChrome();
     bindStart();

@@ -55,7 +55,7 @@
           <p class="habit-sub">${U.esc(subline(h))}</p>
         </div>
         <ol class="habit-week" aria-hidden="true">${weekDots(h, date)}</ol>
-        <span class="habit-streak${streak ? ' is-hot' : ''}" aria-label="Racha de ${streak} días">${ui.icon('flame', 'fill')}<span data-streak>${streak}</span></span>
+        <span class="habit-streak${streak ? ' is-hot' : ''}" aria-label="Racha de ${U.fmt.plural(streak, 'día', 'días')}">${ui.icon('flame', 'fill')}<span data-streak>${streak}</span></span>
         <span class="habit-check" aria-hidden="true">
           <svg viewBox="0 0 32 32"><circle class="hc-ring" cx="16" cy="16" r="14"/><circle class="hc-fill" cx="16" cy="16" r="14"/><path class="hc-tick" d="M10 16.5l4.2 4.2L22.5 11.5"/></svg>
         </span>
@@ -152,11 +152,11 @@
       ? list
           .map(
             ({ h, s, b }) => `
-        <li class="streak-row" style="--hc: var(--c-${h.color})">
+        <li><button type="button" class="streak-row" data-act="streak" data-hid="${h.id}" style="--hc: var(--c-${h.color})" aria-label="${U.esc(h.name)}: racha de ${U.fmt.plural(s, 'día', 'días')}, mejor ${b}">
           <span class="habit-tile tile-sm">${ui.icon(h.icon, 'fill')}</span>
           <span class="streak-name"><span>${U.esc(h.name)}</span><small>Mejor: ${b}</small></span>
           <span class="streak-val${s ? ' is-hot' : ''}">${ui.icon('flame', 'fill')}${s}</span>
-        </li>`
+        </button></li>`
           )
           .join('')
       : '<li class="muted small">Crea un hábito para empezar tu primera racha.</li>';
@@ -205,9 +205,10 @@
   }
 
   function quoteCard() {
-    const q = HA.QUOTES[U.dayOfYear(U.today()) % HA.QUOTES.length];
+    const qi = U.dayOfYear(U.today()) % HA.QUOTES.length;
+    const q = HA.QUOTES[qi];
     return `
-      <article class="quote-card reveal">
+      <article class="quote-card reveal" data-qi="${qi}" role="button" tabindex="0" aria-label="Pensamiento del día. Toca para ver otro.">
         <span class="quote-mark" aria-hidden="true">“</span>
         <p class="quote-text">${U.esc(q)}</p>
         <p class="quote-label">${ui.icon('sparkle', 'fill')} Pensamiento del día</p>
@@ -395,6 +396,7 @@
       const chk = cardEl.querySelector('.habit-check').getBoundingClientRect();
       ui.burst(chk.left + chk.width / 2, chk.top + chk.height / 2, color);
       ui.shockwave(chk.left + chk.width / 2, chk.top + chk.height / 2, color);
+      ui.fx(cardEl.querySelector('.habit-streak i'), 'ignite');
       const tile = cardEl.querySelector('.habit-tile');
       if (tile && !ui.reduced()) {
         tile.animate(
@@ -446,6 +448,12 @@
       const a = act.dataset.act;
       if (a === 'toggle') return toggleHabit(root, act.closest('.habit-card'), e);
       if (a === 'detail') return HA.editor.detail(act.closest('.habit-card').dataset.hid);
+      if (a === 'streak') {
+        HA.sound.tap();
+        const hid = act.dataset.hid;
+        setTimeout(() => HA.editor.detail(hid), ui.reduced() ? 0 : 380);
+        return;
+      }
       if (a === 'new-habit') return HA.editor.open();
       if (a === 'prev-day') return go(-1);
       if (a === 'next-day') return go(1);

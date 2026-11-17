@@ -365,7 +365,7 @@
   };
 
   /* ---------- brillo que nace del dedo/cursor al presionar cualquier botón ---------- */
-  const PRESSABLE = '.btn, .chip, .icon-btn, .seg-btn, .nav-item, .toast-action, .wk-day, .ov-row, .archive-item, .day-opt, .icon-opt, .who-card';
+  const PRESSABLE = '.btn, .chip, .icon-btn, .seg-btn, .nav-item, .toast-action, .wk-day, .ov-row, .archive-item, .day-opt, .icon-opt, .who-card, .streak-row, .quote-card, .kpi';
   ui.initPress = () => {
     document.addEventListener(
       'pointerdown',
@@ -386,6 +386,129 @@
       },
       { passive: true }
     );
+  };
+
+  /* ---------- animaciones distintas al presionar según el elemento ---------- */
+  const FX = {
+    shake: {
+      k: [
+        { transform: 'translateX(0) rotate(0)' },
+        { transform: 'translateX(-6px) rotate(-1.6deg)' },
+        { transform: 'translateX(5px) rotate(1.4deg)' },
+        { transform: 'translateX(-4px) rotate(-0.8deg)' },
+        { transform: 'translateX(2px) rotate(0.4deg)' },
+        { transform: 'translateX(0) rotate(0)' },
+      ],
+      t: 520,
+      e: 'ease-out',
+    },
+    jelly: {
+      k: [
+        { transform: 'scale(1, 1)' },
+        { transform: 'scale(1.06, 0.93)' },
+        { transform: 'scale(0.96, 1.05)' },
+        { transform: 'scale(1.02, 0.98)' },
+        { transform: 'scale(1, 1)' },
+      ],
+      t: 620,
+      e: 'ease-out',
+    },
+    spin: { k: [{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }], t: 760, e: 'cubic-bezier(0.65, 0, 0.35, 1)' },
+    bounce: {
+      k: [
+        { transform: 'translateY(0)' },
+        { transform: 'translateY(-9px)' },
+        { transform: 'translateY(0)' },
+        { transform: 'translateY(-3px)' },
+        { transform: 'translateY(0)' },
+      ],
+      t: 640,
+      e: 'ease-out',
+    },
+    pop: { k: [{ transform: 'scale(1)' }, { transform: 'scale(1.28)' }, { transform: 'scale(1)' }], t: 420, e: 'cubic-bezier(0.34, 1.56, 0.64, 1)' },
+    ignite: {
+      k: [
+        { transform: 'scale(1) rotate(0)' },
+        { transform: 'scale(1.55) rotate(-14deg)' },
+        { transform: 'scale(0.9) rotate(8deg)' },
+        { transform: 'scale(1.1) rotate(-4deg)' },
+        { transform: 'scale(1) rotate(0)' },
+      ],
+      t: 700,
+      e: 'ease-out',
+    },
+    flip: {
+      k: [{ transform: 'perspective(700px) rotateX(0)' }, { transform: 'perspective(700px) rotateX(14deg) scale(0.98)' }, { transform: 'perspective(700px) rotateX(0)' }],
+      t: 520,
+      e: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    },
+  };
+  ui.fx = (el, type) => {
+    if (!el || ui.reduced() || !FX[type]) return;
+    const f = FX[type];
+    el.animate(f.k, { duration: f.t, easing: f.e });
+  };
+
+  /** Pasa a otro pensamiento con un fundido difuminado. */
+  ui.nextQuote = (card) => {
+    const text = card.querySelector('.quote-text');
+    if (!text) return;
+    const next = (Number(card.dataset.qi || 0) + 1) % HA.QUOTES.length;
+    card.dataset.qi = next;
+    if (ui.reduced()) {
+      text.textContent = HA.QUOTES[next];
+      return;
+    }
+    const out = text.animate([{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(8px)' }], { duration: 180, easing: 'ease-in', fill: 'forwards' });
+    setTimeout(() => {
+      out.cancel();
+      text.textContent = HA.QUOTES[next];
+      text.animate(
+        [{ opacity: 0, filter: 'blur(8px)', transform: 'translateY(8px)' }, { opacity: 1, filter: 'blur(0)', transform: 'none' }],
+        { duration: 420, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }
+      );
+    }, 180);
+  };
+
+  // Qué animación lleva cada cosa al tocarla
+  const PRESS_FX = [
+    ['.streak-row', 'shake', (el) => ui.fx(el.querySelector('.streak-val i'), 'ignite')],
+    ['.banner', 'shake'],
+    ['.kpi', 'jelly', (el) => ui.fx(el.querySelector('.kpi-label i'), 'spin')],
+    ['.mini-kpi', 'jelly'],
+    ['.hero-ring', 'jelly'],
+    ['.gs-ring', 'jelly'],
+    ['.quote-card', 'flip', (el) => ui.nextQuote(el)],
+    ['.pearl', 'pop'],
+    ['.count', 'pop'],
+    ['.tag', 'pop'],
+    ['.brand', null, (el) => ui.fx(el.querySelector('.brand-mark'), 'spin')],
+    ['#btnProfile', null, (el) => ui.fx(el.querySelector('.avatar-mini'), 'spin')],
+    ['.swatch', 'pop'],
+    ['.day-opt', 'bounce'],
+    ['.icon-opt', 'pop'],
+    ['.hb-row', null, (el) => ui.fx(el.querySelector('.habit-tile'), 'bounce')],
+    ['.advice-item', null, (el) => ui.fx(el.querySelector('.advice-icon'), 'ignite')],
+    ['.context-list li', 'shake'],
+    ['.legend li', 'pop'],
+  ];
+  ui.initPressFx = () => {
+    const run = (target) => {
+      for (const [sel, type, extra] of PRESS_FX) {
+        const el = target.closest ? target.closest(sel) : null;
+        if (!el) continue;
+        if (type) ui.fx(el, type);
+        if (extra) extra(el);
+        return;
+      }
+    };
+    document.addEventListener('click', (e) => run(e.target));
+    document.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.quote-card')) {
+        e.preventDefault();
+        run(e.target);
+      }
+    });
   };
 
   /* ---------- borde iluminado que sigue al cursor ---------- */
