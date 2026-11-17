@@ -120,7 +120,7 @@
     const p = Math.max(0, Math.min(100, pct || 0)) / 100;
     return `
       <div class="atom-3d${p >= 1 ? ' is-perfect' : ''}" style="--p:${p}" aria-hidden="true">
-        <video class="atom-video" src="${base}.mp4" poster="${base}.jpg" autoplay muted loop playsinline preload="auto" disablepictureinpicture></video>
+        <video class="atom-video" src="${base}.mp4" autoplay muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback x-webkit-airplay="deny" tabindex="-1"></video>
       </div>`;
   }
 
@@ -130,7 +130,6 @@
     document.querySelectorAll('video.atom-video, video.intro-video').forEach((v) => {
       const want = `${base}.mp4`;
       if ((v.getAttribute('src') || '') !== want) {
-        v.setAttribute('poster', `${base}.jpg`);
         v.setAttribute('src', want);
         const p = v.play();
         if (p && p.catch) p.catch(() => {});
@@ -151,17 +150,38 @@
     }
   }
 
-  // Cuando el video está listo, se muestra en lugar del átomo dibujado
+  // El video solo se muestra cuando de verdad se está reproduciendo. Si el
+  // navegador bloquea la reproducción automática (p. ej. Modo de bajo consumo
+  // en iPhone) se queda el átomo animado y nunca aparece el botón de "play".
   document.addEventListener(
-    'loadeddata',
+    'playing',
     (e) => {
       const t = e.target;
       if (!t || !t.matches || !t.matches('video.atom-video, video.intro-video')) return;
       const host = t.closest('.hero-art, .intro-media, .empty-art');
-      if (host) host.classList.add('has-video');
+      if (!host) return;
+      host.classList.add('has-video');
+      // el átomo dibujado deja de animarse para ahorrar batería
+      const svg = host.querySelector('svg.atom, svg.intro-atom');
+      if (svg && svg.pauseAnimations) setTimeout(() => svg.pauseAnimations(), 700);
     },
     true
   );
 
-  HA.atom = { render, update, settle, markInline, video, syncVideos, updateVideo };
+  /** Prepara los videos recién insertados (propiedades que iOS exige además de los atributos). */
+  function primeVideos(root) {
+    (root || document).querySelectorAll('video.atom-video, video.intro-video').forEach((v) => {
+      v.muted = true;
+      v.defaultMuted = true;
+      v.playsInline = true;
+      v.setAttribute('webkit-playsinline', '');
+      v.disableRemotePlayback = true;
+      if (v.getAttribute('src') && v.paused) {
+        const p = v.play();
+        if (p && p.catch) p.catch(() => {});
+      }
+    });
+  }
+
+  HA.atom = { render, update, settle, markInline, video, syncVideos, updateVideo, primeVideos };
 })();

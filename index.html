@@ -24,14 +24,15 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400..900&display=swap">
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 
-  <link rel="stylesheet" href="css/app.css?v=231">
-  <link rel="stylesheet" href="css/report.css?v=231">
-  <link rel="stylesheet" href="css/motion.css?v=231">
+  <link rel="stylesheet" href="css/app.css?v=240">
+  <link rel="stylesheet" href="css/report.css?v=240">
+  <link rel="stylesheet" href="css/motion.css?v=240">
 
   <script>
     /* Aplica el tema antes del primer pintado para evitar parpadeos */
@@ -114,7 +115,7 @@
   <div class="intro" id="intro" hidden>
     <div class="intro-stage">
       <div class="intro-media" id="introMedia">
-        <video class="intro-video" muted loop playsinline autoplay preload="auto" disablepictureinpicture aria-hidden="true"></video>
+        <video class="intro-video" muted loop playsinline webkit-playsinline autoplay preload="auto" disablepictureinpicture disableremoteplayback x-webkit-airplay="deny" tabindex="-1" aria-hidden="true"></video>
         <svg class="intro-atom" viewBox="-120 -120 240 240" aria-hidden="true">
           <circle class="intro-glow" r="46"/>
           <g class="intro-orbits">
@@ -179,20 +180,20 @@
     </defs>
   </svg>
 
-  <script src="js/core.js?v=231"></script>
-  <script src="js/store.js?v=231"></script>
-  <script src="js/stats.js?v=231"></script>
-  <script src="js/sound.js?v=231"></script>
-  <script src="js/ui.js?v=231"></script>
-  <script src="js/atom.js?v=231"></script>
-  <script src="js/editor.js?v=231"></script>
-  <script src="js/settings.js?v=231"></script>
-  <script src="js/views/today.js?v=231"></script>
-  <script src="js/views/month.js?v=231"></script>
-  <script src="js/views/goals.js?v=231"></script>
-  <script src="js/views/notes.js?v=231"></script>
-  <script src="js/views/progress.js?v=231"></script>
-  <script src="js/views/report.js?v=231"></script>
-  <script src="js/app.js?v=231"></script>
+  <script src="js/core.js?v=240"></script>
+  <script src="js/store.js?v=240"></script>
+  <script src="js/stats.js?v=240"></script>
+  <script src="js/sound.js?v=240"></script>
+  <script src="js/ui.js?v=240"></script>
+  <script src="js/atom.js?v=240"></script>
+  <script src="js/editor.js?v=240"></script>
+  <script src="js/settings.js?v=240"></script>
+  <script src="js/views/today.js?v=240"></script>
+  <script src="js/views/month.js?v=240"></script>
+  <script src="js/views/goals.js?v=240"></script>
+  <script src="js/views/notes.js?v=240"></script>
+  <script src="js/views/progress.js?v=240"></script>
+  <script src="js/views/report.js?v=240"></script>
+  <script src="js/app.js?v=240"></script>
 </body>
 </html>

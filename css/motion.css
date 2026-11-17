@@ -87,11 +87,6 @@
   80% { opacity: 0.25; }
   100% { opacity: 0; transform: translate3d(12px, -80px, 0) scale(1); }
 }
-.hero.is-perfect > .core { animation: perfect-pulse 2.8s var(--ease-in-out) infinite; }
-@keyframes perfect-pulse {
-  0%, 100% { box-shadow: var(--core-hi), 0 0 0 1.5px color-mix(in oklab, var(--accent) 60%, transparent), 0 0 40px -10px color-mix(in oklab, var(--accent) 55%, transparent); }
-  50% { box-shadow: var(--core-hi), 0 0 0 1.5px var(--accent), 0 0 70px -6px color-mix(in oklab, var(--accent) 75%, transparent); }
-}
 
 /* ---------- Estela de cometa de los electrones ---------- */
 .e-trail { fill: var(--ec); opacity: 0; transition: opacity 0.5s var(--ease-out); }
@@ -364,3 +359,56 @@ dialog.is-open .icon-grid .icon-opt:nth-child(8n) { animation-delay: 210ms; }
 .intro-media.has-video .intro-atom { opacity: 0; transition: opacity 0.5s var(--ease-out); }
 .intro.is-leaving .intro-video { opacity: 0 !important; transition: opacity 0.18s; }
 @keyframes video-in { from { opacity: 0; transform: scale(0.82); filter: blur(14px); } to { opacity: 1; transform: none; filter: blur(0); } }
+
+/* ==========================================================================
+   Rendimiento y fluidez
+   ========================================================================== */
+
+/* El video del átomo nunca muestra controles ni el botón de "play" de iOS */
+video.atom-video, video.intro-video { pointer-events: none; background: transparent; }
+video.atom-video::-webkit-media-controls,
+video.atom-video::-webkit-media-controls-panel,
+video.atom-video::-webkit-media-controls-start-playback-button,
+video.atom-video::-webkit-media-controls-overlay-play-button,
+video.intro-video::-webkit-media-controls,
+video.intro-video::-webkit-media-controls-panel,
+video.intro-video::-webkit-media-controls-start-playback-button,
+video.intro-video::-webkit-media-controls-overlay-play-button {
+  display: none !important; opacity: 0 !important; -webkit-appearance: none;
+}
+/* Cuando el video ya corre, el átomo dibujado sale del árbol de pintado */
+.hero-art.has-video > svg.atom, .empty-art.has-video > svg.atom { display: none; }
+
+/* Día perfecto: brillo con opacidad (barato) en lugar de animar sombras */
+.hero > .core::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 0 0 1.5px var(--accent), inset 0 0 60px -12px color-mix(in oklab, var(--accent) 55%, transparent);
+  opacity: 0; transition: opacity 0.8s var(--ease-out);
+}
+.hero.is-perfect > .core::after { opacity: 1; animation: glow-breathe 2.8s var(--ease-in-out) infinite; }
+@keyframes glow-breathe { 50% { opacity: 0.45; } }
+
+/* Capas que se animan: aisladas para que el navegador no repinte lo demás */
+.hero-fx, .fx-layer { contain: layout paint; }
+.habit-card, .kpi, .wk-day, .mc { contain: layout style; }
+
+/* Teléfonos y tabletas: mismo diseño, menos trabajo para la GPU */
+@media (hover: none), (max-width: 1023px) {
+  .grain { display: none; }
+  .orb { animation: none !important; will-change: auto; }
+  .hb { will-change: auto; animation-duration: 30s; }
+  .brand-mark, .atom-field { animation: none; }
+  .bezel { background: var(--shell); }
+  .kpi::before, .quote-card::before { display: none; }
+  .ring-bar.is-full { animation: none; }
+  .reveal.is-in { animation-name: rise-m; animation-duration: 0.7s; }
+  .is-split .w { animation-name: word-in-m; }
+  .reveal.is-in .mc { animation-name: cell-in-m; }
+  .chrome::before, .nav-island, .action-island, .toast {
+    -webkit-backdrop-filter: saturate(1.6) blur(16px);
+    backdrop-filter: saturate(1.6) blur(16px);
+  }
+}
+@keyframes rise-m { from { opacity: 0; transform: translate3d(0, 14px, 0); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes word-in-m { from { opacity: 0; transform: translate3d(0, 0.45em, 0); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes cell-in-m { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }

@@ -155,7 +155,6 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
-  overscroll-behavior-y: none;
   transition: background-color 0.4s var(--ease-out), color 0.3s var(--ease-out);
 }
 body.is-intro { overflow: hidden; }

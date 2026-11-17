@@ -22,7 +22,7 @@
       version: 1,
       createdAt: U.todayISO(),
       profile: { name: '' },
-      settings: { theme: 'light', sound: true, intro: true, reduceMotion: false },
+      settings: { theme: 'light', sound: true, silentOverride: true, intro: true, reduceMotion: false },
       habits: [],
       log: {},
       goals: { week: {}, month: {}, short: [], medium: [], long: [] },

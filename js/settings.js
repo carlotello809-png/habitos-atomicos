@@ -88,7 +88,8 @@
                 ],
               })}
             </div>
-            ${toggle('sound', d.settings.sound, 'Sonidos', 'Clics suaves al marcar y acordes al lograr un día perfecto.')}
+            ${toggle('sound', d.settings.sound, 'Sonidos', 'Efectos al marcar, voz de bienvenida y acordes al lograr un día perfecto.')}
+            ${'audioSession' in navigator ? toggle('silentOverride', d.settings.silentOverride !== false, 'Sonar en modo silencio', 'En iPhone, los sonidos se escuchan aunque el interruptor de silencio esté activo. Puede pausar la música de otras apps.') : ''}
             ${toggle('reduceMotion', d.settings.reduceMotion, 'Reducir movimiento', 'Desactiva desplazamientos, partículas y confeti.')}
           </section>
 
@@ -150,7 +151,8 @@
     dlg.querySelectorAll('[data-setting]').forEach((input) => {
       input.addEventListener('change', () => {
         S.setSetting(input.dataset.setting, input.checked);
-        if (input.dataset.setting === 'sound' && input.checked) HA.sound.tap();
+        if (input.dataset.setting === 'silentOverride') HA.sound.applySession();
+        if ((input.dataset.setting === 'sound' || input.dataset.setting === 'silentOverride') && input.checked) HA.sound.tap();
         HA.app.syncChrome();
       });
     });

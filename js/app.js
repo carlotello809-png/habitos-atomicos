@@ -107,6 +107,7 @@
     root.onclick = root.onsubmit = root.onchange = root.ondblclick = null;
     root.classList.toggle('no-anim', !animate);
     mod.render(root);
+    HA.atom.primeVideos(root);
     document.title = `${mod.title} · Hábitos Atómicos`;
     if (!defer) postRender(animate);
   }
@@ -395,7 +396,8 @@
     app.applyTheme(false);
     syncChrome();
     HA.sound.goal();
-    renderView(app.state.view, { defer: true });
+    // la vista se construye cuando la animación de la tarjeta ya arrancó (sin tirones)
+    setTimeout(() => renderView(app.state.view, { defer: true }), reduced ? 0 : 380);
     // la tarjeta elegida se queda un instante; luego aparece el saludo centrado
     setTimeout(() => {
       $('#who').hidden = true;
@@ -439,6 +441,7 @@
     $('#who').hidden = true;
     $('#introForm').hidden = true;
     HA.atom.syncVideos();
+    HA.atom.primeVideos(intro);
     const wait = animateIntro && !reduced ? 1500 : 250;
     setTimeout(() => (S.profiles().length ? showWho() : showForm(false)), wait);
     return new Promise((resolve) => { start.resolve = resolve; });
@@ -560,6 +563,15 @@
   function init() {
     S.load();
     app.root = $('#view');
+    // sin perfil cargado (p. ej. mientras se cambia de persona) la vista no responde
+    ['click', 'submit', 'change', 'dblclick'].forEach((ev) =>
+      app.root.addEventListener(ev, (e) => {
+        if (!S.data) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      }, true)
+    );
     ui.initTooltips();
     ui.initSpotlight();
     ui.initPress();

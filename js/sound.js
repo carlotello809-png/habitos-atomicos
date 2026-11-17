@@ -1,8 +1,14 @@
 /* ==========================================================================
-   Hábitos Atómicos — efectos de sonido
-   Usa los archivos de assets/sfx (tu colección), precargados en memoria con
-   Web Audio para que suenen al instante. Si un archivo aún no carga, se usa
-   un clic sintetizado como respaldo.
+   Hábitos Atómicos — efectos de sonido y voz
+   Usa los archivos de assets/sfx precargados en memoria con Web Audio para que
+   suenen al instante.
+
+   iPhone / iPad (Safari):
+   - El audio solo se desbloquea al SOLTAR el dedo (touchend / click), no al
+     tocar. Se reintenta en cada gesto hasta que el audio quede activo.
+   - El interruptor de silencio apaga Web Audio. Con la sesión de audio en modo
+     "playback" los sonidos se escuchan aunque el iPhone esté en silencio
+     (se puede desactivar en Ajustes).
    ========================================================================== */
 (function () {
   'use strict';
@@ -15,38 +21,53 @@
 
   // volumen relativo de cada efecto (0–1)
   const SFX = {
-    check: 0.55,
-    uncheck: 0.4,
-    tap: 0.32,
-    tab: 0.38,
-    open: 0.32,
-    close: 0.3,
-    add: 0.4,
-    remove: 0.42,
-    goal: 0.5,
-    perfect: 0.55,
-    theme: 0.3,
-    welcome: 0.45,
+    check: 0.6,
+    uncheck: 0.45,
+    tap: 0.35,
+    tab: 0.42,
+    open: 0.36,
+    close: 0.34,
+    add: 0.45,
+    remove: 0.46,
+    goal: 0.55,
+    perfect: 0.6,
+    theme: 0.34,
     voice: 1,
   };
 
+  const settings = () => (HA.store && HA.store.data ? HA.store.data.settings : null);
   const enabled = () => {
-    const d = HA.store && HA.store.data;
-    return d ? !!d.settings.sound : true;
+    const s = settings();
+    return s ? !!s.sound : true;
   };
+
+  /** Sesión de audio de Safari: 'playback' suena aunque el iPhone esté en silencio. */
+  function applySession() {
+    if (!('audioSession' in navigator)) return;
+    const s = settings();
+    const loud = s ? s.silentOverride !== false : true;
+    try {
+      navigator.audioSession.type = loud ? 'playback' : 'ambient';
+    } catch (e) { /* no soportado */ }
+  }
 
   function audio() {
     if (!ctx) {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
-      ctx = new AC();
+      try {
+        ctx = new AC({ latencyHint: 'interactive' });
+      } catch (e) {
+        ctx = new AC();
+      }
       master = ctx.createGain();
-      master.gain.value = 0.9;
+      master.gain.value = 0.95;
       master.connect(ctx.destination);
     }
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     return ctx;
   }
+
+  const running = () => !!ctx && ctx.state === 'running';
 
   function preload() {
     if (loading) return loading;
@@ -64,59 +85,102 @@
     return loading;
   }
 
-  function sample(name, opts) {
+  /**
+   * Desbloqueo: debe llamarse DENTRO de un gesto (touchend / click / keydown).
+   * Reanuda el contexto y reproduce un búfer silencioso (truco necesario en iOS).
+   */
+  function unlock() {
     const c = audio();
+    if (!c) return;
+    applySession();
+    try {
+      const b = c.createBuffer(1, 1, 22050);
+      const s = c.createBufferSource();
+      s.buffer = b;
+      s.connect(c.destination);
+      s.start(0);
+    } catch (e) { /* nada */ }
+    if (c.state !== 'running') c.resume().catch(() => {});
+    preload();
+    // los videos del átomo también necesitan un gesto en "Modo de bajo consumo"
+    document.querySelectorAll('video.atom-video, video.intro-video').forEach((v) => {
+      if (v.paused && v.getAttribute('src')) {
+        const p = v.play();
+        if (p && p.catch) p.catch(() => {});
+      }
+    });
+  }
+
+  // Cada gesto real intenta desbloquear hasta lograrlo (no solo el primero)
+  const onGesture = () => { if (!running()) unlock(); };
+  ['touchend', 'pointerup', 'click', 'keydown'].forEach((ev) =>
+    document.addEventListener(ev, onGesture, { passive: true, capture: true })
+  );
+  // Al volver a la app (iOS suspende el audio en segundo plano)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
+  });
+  // Precarga temprana: los archivos se decodifican aunque el audio siga en pausa
+  window.addEventListener('load', () => {
+    if ('requestIdleCallback' in window) requestIdleCallback(() => preload(), { timeout: 2500 });
+    else setTimeout(preload, 800);
+  });
+
+  function sample(name) {
     const buf = buffers[name];
-    if (!c || !buf) return false;
-    const src = c.createBufferSource();
+    if (!ctx || !buf) return false;
+    const src = ctx.createBufferSource();
     src.buffer = buf;
-    if (opts && opts.rate) src.playbackRate.value = opts.rate;
-    const g = c.createGain();
-    g.gain.value = SFX[name] * ((opts && opts.gain) || 1);
+    const g = ctx.createGain();
+    g.gain.value = SFX[name];
     src.connect(g).connect(master);
-    src.start(c.currentTime + ((opts && opts.delay) || 0));
+    src.start(0);
     return true;
   }
 
-  /* ---------- respaldo sintetizado ---------- */
-  function click(pitch, peak) {
-    const c = audio();
-    if (!c) return;
-    const t0 = c.currentTime;
-    const osc = c.createOscillator();
+  function click(pitch) {
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(pitch, t0);
     osc.frequency.exponentialRampToValueAtTime(pitch * 0.6, t0 + 0.06);
-    const g = c.createGain();
-    g.gain.setValueAtTime(peak || 0.05, t0);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.05, t0);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.08);
     osc.connect(g).connect(master);
     osc.start(t0);
     osc.stop(t0 + 0.1);
   }
 
-  function play(name, fallbackPitch, opts) {
+  /** Reproduce un efecto; si el audio aún se está activando, espera un instante. */
+  function play(name, fallbackPitch) {
     if (!enabled()) return;
-    try {
-      if (!sample(name, opts)) click(fallbackPitch);
-    } catch (e) { /* audio no disponible */ }
+    const c = audio();
+    if (!c) return;
+    const go = () => {
+      try {
+        if (!sample(name)) click(fallbackPitch);
+      } catch (e) { /* audio no disponible */ }
+    };
+    if (c.state === 'running') return go();
+    // se está reanudando dentro de este mismo gesto: suena en cuanto esté listo
+    c.resume().then(() => { if (c.state === 'running') go(); }).catch(() => {});
   }
 
-  // Desbloquea el audio con el primer gesto (requisito de los navegadores)
-  function unlock() {
-    try {
-      audio();
-      preload();
-    } catch (e) { /* nada */ }
+  /** Para archivos largos (voz): espera la carga si todavía no terminó. */
+  function playLoaded(name, fallbackPitch) {
+    if (!enabled()) return;
+    if (buffers[name]) return play(name, fallbackPitch);
+    preload().then(() => play(name, fallbackPitch));
   }
-  ['pointerdown', 'keydown', 'touchstart'].forEach((ev) =>
-    document.addEventListener(ev, unlock, { once: true, passive: true, capture: true })
-  );
-  // Precarga temprana (el contexto queda suspendido hasta el primer gesto)
-  window.addEventListener('load', () => { try { preload(); } catch (e) {} });
 
   HA.sound = {
     unlock,
+    applySession,
+    /** Estado del audio (diagnóstico): 'running', 'suspended', etc. */
+    state: () => (ctx ? ctx.state : 'none'),
+    loaded: () => Object.keys(buffers).length,
     check: () => play('check', 1400),
     uncheck: () => play('uncheck', 600),
     add: () => play('add', 1300),
@@ -127,18 +191,8 @@
     tab: () => play('tab', 1100),
     goal: () => play('goal', 1500),
     theme: () => play('theme', 700),
-    perfect: () => play('perfect', 1600),
+    perfect: () => playLoaded('perfect', 1600),
     /** Voz de bienvenida al entrar a la app. */
-    voice: () => {
-      if (!enabled()) return;
-      if (buffers.voice) return play('voice', 900);
-      preload().then(() => play('voice', 900));
-    },
-    welcome: () => {
-      if (!enabled()) return;
-      // si el archivo aún no está listo, espera un instante a que cargue
-      if (buffers.welcome) return play('welcome', 900);
-      preload().then(() => play('welcome', 900));
-    },
+    voice: () => playLoaded('voice', 900),
   };
 })();
